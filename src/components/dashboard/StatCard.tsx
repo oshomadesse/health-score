@@ -16,35 +16,35 @@ interface StatCardProps {
 export function StatCard({ title, value, unit, icon: Icon, color, score, subValue, delay = 0 }: StatCardProps) {
     return (
         <motion.div
-            className="bg-surface/50 backdrop-blur-lg border border-white/5 rounded-2xl p-6 flex flex-col justify-between hover:bg-surface/70 transition-colors"
+            className="bg-surface/50 backdrop-blur-lg border border-white/5 rounded-xl p-4 flex flex-col justify-between hover:bg-surface/70 transition-colors"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay, duration: 0.4 }}
         >
-            <div className="flex justify-between items-start mb-4">
-                <div className={cn("p-3 rounded-xl bg-white/5", color)}>
-                    <Icon size={24} />
+            <div className="flex justify-between items-start mb-3">
+                <div className={cn("p-2 rounded-lg bg-white/5", color)}>
+                    <Icon size={20} />
                 </div>
                 {score !== undefined && (
                     <div className="text-xs font-mono text-gray-500">
-                        Score: {score}
+                        {score}
                     </div>
                 )}
             </div>
 
             <div>
-                <h3 className="text-gray-400 text-sm font-medium mb-1">{title}</h3>
+                <h3 className="text-gray-400 text-xs font-medium mb-1">{title}</h3>
                 <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-bold text-white">{value}</span>
-                    {unit && <span className="text-sm text-gray-500">{unit}</span>}
+                    <span className="text-xl font-bold text-white">{value}</span>
+                    {unit && <span className="text-xs text-gray-500">{unit}</span>}
                 </div>
                 {subValue && (
-                    <p className="text-xs text-gray-500 mt-1">{subValue}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{subValue}</p>
                 )}
             </div>
 
             {score !== undefined && (
-                <div className="mt-4 h-1.5 w-full bg-gray-700 rounded-full overflow-hidden">
+                <div className="mt-3 h-1 w-full bg-gray-700 rounded-full overflow-hidden">
                     <motion.div
                         className={cn("h-full rounded-full", color.replace('text-', 'bg-'))}
                         initial={{ width: 0 }}
