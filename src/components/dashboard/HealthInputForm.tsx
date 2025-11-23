@@ -53,11 +53,12 @@ export function HealthInputForm({ data, onChange }: HealthInputFormProps) {
 
             {/* Activity Section */}
             <div className="space-y-4">
-                <h4 className="text-sm font-medium text-primary uppercase tracking-wider">活動</h4>
+                <h4 className="text-sm font-medium text-primary uppercase tracking-wider">活動量</h4>
+
                 <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                         <span className="text-gray-400">歩数</span>
-                        <span className="text-white font-mono">{data.activity.steps}歩</span>
+                        <span className="text-white font-mono">{data.activity.steps.toLocaleString()} 歩</span>
                     </div>
                     <input
                         type="range"
@@ -67,21 +68,17 @@ export function HealthInputForm({ data, onChange }: HealthInputFormProps) {
                         className="w-full h-2 bg-surface-light rounded-lg appearance-none cursor-pointer accent-primary"
                     />
                 </div>
-            </div>
 
-            {/* Stress Section */}
-            <div className="space-y-4">
-                <h4 className="text-sm font-medium text-accent-red uppercase tracking-wider">ストレス</h4>
                 <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">平均ストレス値</span>
-                        <span className="text-white font-mono">{data.stress.average}</span>
+                        <span className="text-gray-400">消費カロリー</span>
+                        <span className="text-white font-mono">{data.activity.calories} kcal</span>
                     </div>
                     <input
                         type="range"
-                        min="0" max="100" step="1"
-                        value={data.stress.average}
-                        onChange={(e) => handleChange('stress', 'average', parseInt(e.target.value))}
+                        min="0" max="1000" step="10"
+                        value={data.activity.calories}
+                        onChange={(e) => handleChange('activity', 'calories', parseInt(e.target.value))}
                         className="w-full h-2 bg-surface-light rounded-lg appearance-none cursor-pointer accent-accent-red"
                     />
                 </div>
@@ -101,24 +98,6 @@ export function HealthInputForm({ data, onChange }: HealthInputFormProps) {
                         value={data.heartRate.resting}
                         onChange={(e) => handleChange('heartRate', 'resting', parseInt(e.target.value))}
                         className="w-full h-2 bg-surface-light rounded-lg appearance-none cursor-pointer accent-accent-green"
-                    />
-                </div>
-            </div>
-
-            {/* SpO2 Section */}
-            <div className="space-y-4">
-                <h4 className="text-sm font-medium text-blue-400 uppercase tracking-wider">血中酸素濃度 (SpO2)</h4>
-                <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">平均 SpO2</span>
-                        <span className="text-white font-mono">{data.spo2.average}%</span>
-                    </div>
-                    <input
-                        type="range"
-                        min="80" max="100" step="1"
-                        value={data.spo2.average}
-                        onChange={(e) => handleChange('spo2', 'average', parseInt(e.target.value))}
-                        className="w-full h-2 bg-surface-light rounded-lg appearance-none cursor-pointer accent-blue-400"
                     />
                 </div>
             </div>

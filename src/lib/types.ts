@@ -8,24 +8,17 @@ export interface HealthData {
         steps: number;
         calories: number;
     };
-    stress: {
-        average: number; // 0-100
-    };
     heartRate: {
         resting: number; // bpm
-    };
-    spo2: {
-        average: number; // percentage 0-100
     };
 }
 
 export interface ScoreBreakdown {
     total: number;
     sleep: number;
-    activity: number;
-    stress: number;
+    steps: number;
+    calories: number;
     heartRate: number;
-    spo2: number;
 }
 
 export interface ScoreComponent {

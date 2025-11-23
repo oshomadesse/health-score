@@ -21,14 +21,14 @@ export const calculateScore = (data: HealthData): ScoreBreakdown => {
         sleepScore += data.sleep.deepSleepPercentage * 2;
     }
 
-    // 2. Activity Score (30%)
-    // Ideal: 8000+ steps
-    let activityScore = Math.min(100, (data.activity.steps / 8000) * 100);
+    // 2. Steps Score (30%)
+    // 8000 steps = 100 pts
+    const stepsScore = Math.min(100, (data.activity.steps / 8000) * 100);
 
-    // 3. Stress Score (20%)
-    // Lower is better. 0-100 scale.
-    // If stress is 20, score is 80.
-    let stressScore = Math.max(0, 100 - data.stress.average);
+    // 3. Calories Score (20%)
+    // 300kcal (active) = 60pts, 500kcal = 100pts
+    // Assuming this is "Active Calories" not total.
+    const caloriesScore = Math.min(100, (data.activity.calories / 500) * 100);
 
     // 4. Heart Rate Score (10%)
     // Resting HR: 60-100 is normal, but lower end is better for athletes.
@@ -44,33 +44,20 @@ export const calculateScore = (data: HealthData): ScoreBreakdown => {
         hrScore = Math.max(0, 100 - (data.heartRate.resting - 70) * 2);
     }
 
-    // 5. SpO2 Score (10%)
-    // 95-100 is normal. < 90 is concerning.
-    let spo2Score = 0;
-    if (data.spo2.average >= 95) {
-        spo2Score = 100;
-    } else if (data.spo2.average >= 90) {
-        spo2Score = 80 + (data.spo2.average - 90) * 4; // 90->80, 94->96
-    } else {
-        spo2Score = Math.max(0, data.spo2.average); // drastic drop
-    }
-
     // Weighted Total
-    // Sleep 35%, Activity 25%, Stress 20%, HR 10%, SpO2 10%
+    // Sleep 40%, Steps 30%, Calories 20%, HR 10%
     const total =
-        (sleepScore * 0.35) +
-        (activityScore * 0.25) +
-        (stressScore * 0.20) +
-        (hrScore * 0.10) +
-        (spo2Score * 0.10);
+        (sleepScore * 0.4) +
+        (stepsScore * 0.3) +
+        (caloriesScore * 0.2) +
+        (hrScore * 0.1);
 
     return {
         total: Math.round(total),
         sleep: Math.round(sleepScore),
-        activity: Math.round(activityScore),
-        stress: Math.round(stressScore),
-        heartRate: Math.round(hrScore),
-        spo2: Math.round(spo2Score)
+        steps: Math.round(stepsScore),
+        calories: Math.round(caloriesScore),
+        heartRate: Math.round(hrScore)
     };
 };
 
