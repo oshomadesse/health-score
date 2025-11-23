@@ -1,11 +1,15 @@
-import { useState, useMemo } from 'react';
-import { Activity, Moon, Heart, Zap } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { Activity, Moon, Flame, Heart, RefreshCw } from 'lucide-react';
+import { useGoogleLogin } from '@react-oauth/google';
 import type { HealthData } from './lib/types';
 import { calculateScore } from './lib/scoring';
 import { getConditionMessage } from './lib/messages';
 import { ScoreGauge } from './components/dashboard/ScoreGauge';
 import { StatCard } from './components/dashboard/StatCard';
+import { fetchGoogleFitData } from './lib/googleFit';
+import { cn } from './lib/utils';
 
+// Initial data (fallback)
 const INITIAL_DATA: HealthData = {
   sleep: {
     totalHours: 7.5,
@@ -22,85 +26,127 @@ const INITIAL_DATA: HealthData = {
 };
 
 function App() {
-  const [data] = useState<HealthData>(INITIAL_DATA);
+  const [data, setData] = useState<HealthData>(INITIAL_DATA);
+  const [isLoading, setIsLoading] = useState(false);
+  const [lastSync, setLastSync] = useState<string | null>(null);
+
   const score = useMemo(() => calculateScore(data), [data]);
   const message = useMemo(() => getConditionMessage(score.total), [score.total]);
 
-  return (
-    <div className="min-h-screen bg-background text-white p-4 md:p-8 font-sans selection:bg-primary/30">
-      <div className="max-w-6xl mx-auto space-y-8">
+  const login = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setIsLoading(true);
+      try {
+        const fitData = await fetchGoogleFitData(tokenResponse.access_token);
+        setData(prev => ({
+          ...prev,
+          ...fitData
+        }));
+        setLastSync(new Date().toLocaleString('ja-JP'));
+        localStorage.setItem('google_access_token', tokenResponse.access_token);
+      } catch (error) {
+        console.error('Failed to fetch Fit data', error);
+        alert('データの取得に失敗しました。');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    scope: 'https://www.googleapis.com/auth/fitness.activity.read https://www.googleapis.com/auth/fitness.sleep.read https://www.googleapis.com/auth/fitness.heart_rate.read',
+  });
 
+  // Auto-fetch on load if token exists (simple attempt)
+  useEffect(() => {
+    const token = localStorage.getItem('google_access_token');
+    if (token) {
+      setIsLoading(true);
+      fetchGoogleFitData(token)
+        .then(fitData => {
+          setData(prev => ({ ...prev, ...fitData }));
+          setLastSync(new Date().toLocaleString('ja-JP'));
+        })
+        .catch(() => {
+          // Token likely expired, ignore and let user click sync
+          localStorage.removeItem('google_access_token');
+        })
+        .finally(() => setIsLoading(false));
+    }
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-background text-foreground p-4 md:p-8 flex justify-center">
+      <div className="max-w-md w-full space-y-8">
         {/* Header */}
-        <header className="flex items-center justify-between mb-12">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/20 rounded-lg">
-              <Zap className="text-primary w-6 h-6" />
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              本日のしょーまの<span className="text-primary">ヘルススコア</span>
+        <header className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              本日のしょーまのヘルススコア
             </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {new Date().toLocaleDateString('en-US', { month: 'long' })}/{new Date().getFullYear().toString().slice(-2)}/{new Date().getDate()}({new Date().toLocaleDateString('ja-JP', { weekday: 'short' })})
+              {lastSync && ` • 更新: ${lastSync.split(' ')[1]}`}
+            </p>
           </div>
-          <div className="text-sm text-gray-400">
-            {new Date().toLocaleDateString('ja-JP', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-          </div>
+          <button
+            onClick={() => login()}
+            disabled={isLoading}
+            className="p-2 rounded-full bg-surface hover:bg-surface/80 transition-colors disabled:opacity-50"
+            title="Google Fitと同期"
+          >
+            <RefreshCw className={cn("w-5 h-5 text-primary", isLoading && "animate-spin")} />
+          </button>
         </header>
 
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* Main Score Display */}
-          <div className="bg-surface/30 backdrop-blur-md border border-white/5 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-around gap-8 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-accent-green opacity-50" />
+        {/* Score Gauge */}
+        <div className="flex justify-center py-4">
+          <ScoreGauge score={score.total} />
+        </div>
 
-            <div className="relative z-10">
-              <ScoreGauge score={score.total} size={240} />
-            </div>
+        {/* Condition Message */}
+        <div className="bg-surface rounded-2xl p-6 text-center border border-white/5">
+          <h2 className="text-xl font-bold mb-2" style={{ color: score.total >= 80 ? '#10b981' : score.total >= 60 ? '#f59e0b' : '#ef4444' }}>
+            {message.title}
+          </h2>
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            {message.description}
+          </p>
+        </div>
 
-            <div className="space-y-4 max-w-sm text-center md:text-left z-10">
-              <h2 className="text-3xl font-bold">{message.title}</h2>
-              <p className="text-gray-400 leading-relaxed">
-                {message.description}
-              </p>
-            </div>
-          </div>
-
-          {/* Metrics Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <StatCard
-              title="睡眠の質"
-              value={`${data.sleep.totalHours}時間`}
-              unit={`(深い睡眠 ${data.sleep.deepSleepPercentage}%)`}
-              icon={Moon}
-              color="text-primary-cyan"
-              score={score.sleep}
-              delay={0.1}
-            />
-            <StatCard
-              title="歩数"
-              value={data.activity.steps}
-              unit="歩"
-              icon={Activity}
-              color="text-primary"
-              score={score.steps}
-              delay={0.2}
-            />
-            <StatCard
-              title="消費カロリー"
-              value={data.activity.calories}
-              unit="kcal"
-              icon={Zap}
-              color="text-accent-red"
-              score={score.calories}
-              delay={0.3}
-            />
-            <StatCard
-              title="安静時心拍数"
-              value={data.heartRate.resting}
-              unit="bpm"
-              icon={Heart}
-              color="text-accent-green"
-              score={score.heartRate}
-              delay={0.4}
-            />
-          </div>
+        {/* Metrics Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          <StatCard
+            title="睡眠"
+            value={`${data.sleep.totalHours}`}
+            unit="時間"
+            icon={Moon}
+            score={score.sleep}
+            subValue={`深い睡眠 ${data.sleep.deepSleepPercentage}%`}
+            color="text-indigo-400"
+          />
+          <StatCard
+            title="歩数"
+            value={data.activity.steps.toLocaleString()}
+            unit="歩"
+            icon={Activity}
+            score={score.steps}
+            color="text-emerald-400"
+          />
+          <StatCard
+            title="消費カロリー"
+            value={data.activity.calories.toLocaleString()}
+            unit="kcal"
+            icon={Flame}
+            score={score.calories}
+            color="text-orange-400"
+          />
+          <StatCard
+            title="心拍数"
+            value={`${data.heartRate.resting}`}
+            unit="bpm"
+            icon={Heart}
+            score={score.heartRate}
+            subValue="安静時"
+            color="text-rose-400"
+          />
         </div>
       </div>
     </div>

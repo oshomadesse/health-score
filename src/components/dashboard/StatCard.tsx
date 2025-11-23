@@ -9,10 +9,11 @@ interface StatCardProps {
     icon: LucideIcon;
     color: string; // Tailwind text color class e.g. "text-blue-500"
     score?: number; // 0-100 score for this metric to show a mini bar
+    subValue?: string;
     delay?: number;
 }
 
-export function StatCard({ title, value, unit, icon: Icon, color, score, delay = 0 }: StatCardProps) {
+export function StatCard({ title, value, unit, icon: Icon, color, score, subValue, delay = 0 }: StatCardProps) {
     return (
         <motion.div
             className="bg-surface/50 backdrop-blur-lg border border-white/5 rounded-2xl p-6 flex flex-col justify-between hover:bg-surface/70 transition-colors"
@@ -37,6 +38,9 @@ export function StatCard({ title, value, unit, icon: Icon, color, score, delay =
                     <span className="text-2xl font-bold text-white">{value}</span>
                     {unit && <span className="text-sm text-gray-500">{unit}</span>}
                 </div>
+                {subValue && (
+                    <p className="text-xs text-gray-500 mt-1">{subValue}</p>
+                )}
             </div>
 
             {score !== undefined && (
