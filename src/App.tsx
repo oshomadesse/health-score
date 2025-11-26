@@ -12,7 +12,6 @@ import { cn } from './lib/utils';
 const INITIAL_DATA: HealthData = {
   sleep: {
     totalHours: 7.5,
-    deepSleepPercentage: 25,
     wakeCount: 1
   },
   activity: {
@@ -102,7 +101,6 @@ function App() {
             unit="時間"
             icon={Moon}
             score={score.sleep}
-            subValue={`深い睡眠 ${data.sleep.deepSleepPercentage}%`}
             color="text-indigo-400"
           />
           <StatCard

@@ -1,7 +1,6 @@
 export interface HealthData {
     sleep: {
         totalHours: number; // e.g. 7.5
-        deepSleepPercentage: number; // e.g. 25 (percent)
         wakeCount: number;
     };
     activity: {

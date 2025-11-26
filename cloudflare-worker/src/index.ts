@@ -6,7 +6,6 @@ interface HealthData {
     date: string;
     sleep: {
         totalHours: number;
-        deepSleepPercentage: number;
         wakeCount: number;
     };
     activity: {

@@ -2,23 +2,16 @@ import type { HealthData, ScoreBreakdown } from './types';
 
 export const calculateScore = (data: HealthData): ScoreBreakdown => {
     // 1. Sleep Score (40%)
-    // Ideal: 7-9 hours, Deep sleep > 20%
+    // Ideal: 7-9 hours
     let sleepScore = 0;
 
-    // Duration score (0-60)
+    // Duration score (0-100)
     if (data.sleep.totalHours >= 7 && data.sleep.totalHours <= 9) {
-        sleepScore += 60;
+        sleepScore = 100;
     } else if (data.sleep.totalHours >= 6) {
-        sleepScore += 40;
+        sleepScore = 70;
     } else {
-        sleepScore += Math.max(0, data.sleep.totalHours * 5);
-    }
-
-    // Deep sleep score (0-40)
-    if (data.sleep.deepSleepPercentage >= 20) {
-        sleepScore += 40;
-    } else {
-        sleepScore += data.sleep.deepSleepPercentage * 2;
+        sleepScore = Math.max(0, data.sleep.totalHours * 10);
     }
 
     // 2. Steps Score (30%)
