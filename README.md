@@ -1,73 +1,60 @@
-# React + TypeScript + Vite
+# Health Score Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+毎日の健康状態をスコア化して可視化するダッシュボードです。
+Xiaomi Smart Band 6などのウェアラブルデバイスで計測したデータを、Appleヘルスケア経由で取得し表示します。
 
-Currently, two official plugins are available:
+## 🚀 機能
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **総合スコア**: 睡眠、歩数、カロリー、心拍数から独自のアルゴリズムで100点満点のスコアを算出
+- **データ可視化**: 各メトリクスをカード形式で表示し、個別の評価スコアも確認可能
+- **自動連携**: iPhoneショートカットを使って、Appleヘルスケアのデータをワンタップで同期
+- **レスポンシブ**: スマホファーストなデザイン
 
-## React Compiler
+## 🛠 アーキテクチャ
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```mermaid
+graph LR
+    Device[Xiaomi Smart Band] -->|Bluetooth| MiFit[Mi Fitness App]
+    MiFit -->|Sync| Health[Apple HealthKit]
+    Health -->|Shortcut| Workers[Cloudflare Workers API]
+    Workers -->|JSON| Site[Health Score Site]
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- **Frontend**: React, TypeScript, Vite, Tailwind CSS
+- **Backend**: Cloudflare Workers (Hono-like simple API), KV Storage
+- **Hosting**: GitHub Pages
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 📱 セットアップ
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 1. サイトのデプロイ
+GitHub Actionsにより、`main` ブランチへのプッシュで自動的にGitHub Pagesにデプロイされます。
+
+### 2. APIのデプロイ (Cloudflare Workers)
+`cloudflare-worker` ディレクトリ内で:
+```bash
+npm install
+npm run deploy
+```
+
+### 3. iPhoneショートカットの作成
+Appleヘルスケアからデータを取得し、APIに送信するショートカットを作成します。
+詳細は `apple_healthkit_setup.md` を参照してください。
+
+## 📝 使い方
+
+1. 毎朝、iPhoneのショートカット「ヘルススコア更新」を実行
+2. 通知が表示されたら、サイトを開く
+3. 前日のデータに基づいたスコアが表示されます
+
+## 開発
+
+```bash
+# 依存関係のインストール
+npm install
+
+# 開発サーバーの起動
+npm run dev
+
+# ビルド
+npm run build
 ```
