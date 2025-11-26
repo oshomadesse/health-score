@@ -1,12 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Activity, Moon, Flame, Heart, RefreshCw } from 'lucide-react';
-import { useGoogleLogin } from '@react-oauth/google';
-import type { HealthData } from './lib/types';
-import { calculateScore } from './lib/scoring';
-import { getConditionMessage } from './lib/messages';
 import { ScoreGauge } from './components/dashboard/ScoreGauge';
 import { StatCard } from './components/dashboard/StatCard';
-import { fetchGoogleFitData } from './lib/googleFit';
+import { calculateScore } from './lib/scoring';
+import { getConditionMessage } from './lib/messages';
+import { fetchLatestHealthData } from './lib/healthApi';
+import type { HealthData } from './lib/types';
 import { cn } from './lib/utils';
 
 // Initial data (fallback)
@@ -33,43 +32,27 @@ function App() {
   const score = useMemo(() => calculateScore(data), [data]);
   const message = useMemo(() => getConditionMessage(score.total), [score.total]);
 
-  const login = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      setIsLoading(true);
-      try {
-        const fitData = await fetchGoogleFitData(tokenResponse.access_token);
+  const loadHealthData = async () => {
+    setIsLoading(true);
+    try {
+      const healthData = await fetchLatestHealthData();
+      if (healthData) {
         setData(prev => ({
           ...prev,
-          ...fitData
+          ...healthData
         }));
         setLastSync(new Date().toLocaleString('ja-JP'));
-        localStorage.setItem('google_access_token', tokenResponse.access_token);
-      } catch (error) {
-        console.error('Failed to fetch Fit data', error);
-        alert('データの取得に失敗しました。');
-      } finally {
-        setIsLoading(false);
       }
-    },
-    scope: 'https://www.googleapis.com/auth/fitness.activity.read https://www.googleapis.com/auth/fitness.sleep.read https://www.googleapis.com/auth/fitness.heart_rate.read',
-  });
-
-  // Auto-fetch on load if token exists (simple attempt)
-  useEffect(() => {
-    const token = localStorage.getItem('google_access_token');
-    if (token) {
-      setIsLoading(true);
-      fetchGoogleFitData(token)
-        .then(fitData => {
-          setData(prev => ({ ...prev, ...fitData }));
-          setLastSync(new Date().toLocaleString('ja-JP'));
-        })
-        .catch(() => {
-          // Token likely expired, ignore and let user click sync
-          localStorage.removeItem('google_access_token');
-        })
-        .finally(() => setIsLoading(false));
+    } catch (error) {
+      console.error('Failed to fetch health data', error);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  // Auto-load on mount
+  useEffect(() => {
+    loadHealthData();
   }, []);
 
   return (
@@ -87,10 +70,10 @@ function App() {
             </p>
           </div>
           <button
-            onClick={() => login()}
+            onClick={() => loadHealthData()}
             disabled={isLoading}
             className="p-2 rounded-full bg-surface hover:bg-surface/80 transition-colors disabled:opacity-50 flex-shrink-0"
-            title="Google Fitと同期"
+            title="データを更新"
           >
             <RefreshCw className={cn("w-5 h-5 text-primary", isLoading && "animate-spin")} />
           </button>

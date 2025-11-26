@@ -1,0 +1,7 @@
+name = "health-score-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[[kv_namespaces]]
+binding = "HEALTH_DATA"
+id = "381c51bb10b943feaa2a5aa4cfa90730"
