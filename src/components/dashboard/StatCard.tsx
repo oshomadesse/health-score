@@ -26,8 +26,8 @@ export function StatCard({ title, value, unit, icon: Icon, color, score, subValu
                     <Icon size={20} />
                 </div>
                 {score !== undefined && (
-                    <div className="text-xs font-mono text-gray-500">
-                        {score}
+                    <div className="text-xs text-gray-400">
+                        {score}点
                     </div>
                 )}
             </div>

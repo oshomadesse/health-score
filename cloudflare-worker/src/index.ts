@@ -56,8 +56,12 @@ export default {
                     status: 200,
                     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                 });
-            } catch (error) {
-                return new Response(JSON.stringify({ error: 'Failed to save data' }), {
+            } catch (error: any) {
+                return new Response(JSON.stringify({
+                    error: 'Failed to save data',
+                    details: error.message,
+                    stack: error.stack
+                }), {
                     status: 500,
                     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                 });
