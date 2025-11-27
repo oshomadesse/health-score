@@ -1,3 +1,9 @@
+---
+tags:
+  - engineering
+  - done
+  - health-score
+---
 # Health Score Dashboard
 
 毎日の健康状態をスコア化して可視化するダッシュボードです。
